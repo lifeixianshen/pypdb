@@ -37,8 +37,8 @@ class SequenceOperator:
     def _autoresolve_sequence_type(self):
         unique_letters = set(list(self.sequence))
 
-        dna_letter_set = set(["A", "T", "C", "G"])
-        rna_letter_set = set(["A", "U", "C", "G"])
+        dna_letter_set = {"A", "T", "C", "G"}
+        rna_letter_set = {"A", "U", "C", "G"}
         protein_letter_set = set(list("ABCDEFGHIKLMNPQRSTVWXYZ"))
         protein_fingerprint_set = set(list("BDEFHIKLMNPQRSVWXYZ"))
         if unique_letters.issubset(dna_letter_set) and "T" in unique_letters:
@@ -50,8 +50,8 @@ class SequenceOperator:
             self.sequence_type = SequenceType.PROTEIN
         else:
             raise CannotAutoresolveSequenceTypeError(
-                "Sequence is ambiguous as to its SequenceType: `{}`".format(
-                    self.sequence))
+                f"Sequence is ambiguous as to its SequenceType: `{self.sequence}`"
+            )
 
     def _to_dict(self) -> Dict[str, Any]:
         return {

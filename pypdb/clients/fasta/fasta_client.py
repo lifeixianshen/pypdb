@@ -62,11 +62,11 @@ def get_fasta_from_rcsb_entry(rcsb_id: str) -> List[FastaSequence]:
       `FastaSequence` object associated with that entity.
     """
 
-    print("Querying RCSB for the '{}' FASTA file.".format(rcsb_id))
+    print(f"Querying RCSB for the '{rcsb_id}' FASTA file.")
     response = requests.get(FASTA_BASE_URL + rcsb_id)
 
     if not response.ok:
-        warnings.warn("It appears request failed with:" + response.text)
+        warnings.warn(f"It appears request failed with:{response.text}")
         response.raise_for_status()
 
     return _parse_fasta_text_to_list(response.text)

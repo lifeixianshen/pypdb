@@ -143,11 +143,18 @@ class Query(object):
             query_subtype = None
 
         assert query_type in {
-            "full_text", "text", "structure", "sequence", "seqmotif", "chemical"
-        }, "Query type %s not recognized." % query_type
+            "full_text",
+            "text",
+            "structure",
+            "sequence",
+            "seqmotif",
+            "chemical",
+        }, f"Query type {query_type} not recognized."
 
-        assert return_type in {"entry", "polymer_entity"
-                               }, "Return type %s not supported." % return_type
+        assert return_type in {
+            "entry",
+            "polymer_entity",
+        }, f"Return type {return_type} not supported."
 
         self.query_type = query_type
         self.search_term = search_term
@@ -155,10 +162,7 @@ class Query(object):
         self.url = "https://search.rcsb.org/rcsbsearch/v1/query?json="
         composite_query = False
         if not scan_params:
-            query_params = dict()
-            query_params["type"] = "terminal"
-            query_params["service"] = query_type
-
+            query_params = {"type": "terminal", "service": query_type}
             if query_type in ["full_text", "text"]:
                 query_params['parameters'] = {"value": search_term}
 
@@ -206,32 +210,6 @@ class Query(object):
 #                 query_params['mvStructure.expMethod.value']= search_term
             if query_subtype:
 
-                if query_subtype == "pmid":
-                    query_params['parameters'] = {
-                        "operator": "in",
-                        "negation": False,
-                        "value": [search_term],
-                        "attribute":
-                        "rcsb_pubmed_container_identifiers.pubmed_id"
-                    }
-                if query_subtype == "taxid":
-                    query_params['parameters'] = {
-                        "operator":
-                        "exact_match",
-                        "negation":
-                        False,
-                        "value":
-                        str(search_term),
-                        "attribute":
-                        "rcsb_entity_source_organism.taxonomy_lineage.id"
-                    }
-                if query_subtype == "experiment_type":
-                    query_params['parameters'] = {
-                        "operator": "exact_match",
-                        "negation": False,
-                        "value": str(search_term),
-                        "attribute": "exptl.method"
-                    }
                 if query_subtype == "author":
                     query_params['parameters'] = {
                         "operator": "exact_match",
@@ -239,7 +217,14 @@ class Query(object):
                         "value": str(search_term),
                         "attribute": "rcsb_primary_citation.rcsb_authors"
                     }
-                if query_subtype == "organism":
+                elif query_subtype == "experiment_type":
+                    query_params['parameters'] = {
+                        "operator": "exact_match",
+                        "negation": False,
+                        "value": str(search_term),
+                        "attribute": "exptl.method"
+                    }
+                elif query_subtype == "organism":
                     query_params['parameters'] = {
                         "operator":
                         "contains_words",
@@ -250,7 +235,7 @@ class Query(object):
                         "attribute":
                         "rcsb_entity_source_organism.taxonomy_lineage.name"
                     }
-                if query_subtype == "pfam":
+                elif query_subtype == "pfam":
                     query_params['parameters'] = {
                         "operator": "exact_match",
                         "negation": False,
@@ -259,10 +244,26 @@ class Query(object):
                         "rcsb_polymer_entity_annotation.annotation_id"
                     }
 
-            self.scan_params = dict()
-            self.scan_params["query"] = query_params
-            self.scan_params["return_type"] = return_type
-
+                elif query_subtype == "pmid":
+                    query_params['parameters'] = {
+                        "operator": "in",
+                        "negation": False,
+                        "value": [search_term],
+                        "attribute":
+                        "rcsb_pubmed_container_identifiers.pubmed_id"
+                    }
+                elif query_subtype == "taxid":
+                    query_params['parameters'] = {
+                        "operator":
+                        "exact_match",
+                        "negation":
+                        False,
+                        "value":
+                        str(search_term),
+                        "attribute":
+                        "rcsb_entity_source_organism.taxonomy_lineage.id"
+                    }
+            self.scan_params = {"query": query_params, "return_type": return_type}
             if return_type == "entry":
                 self.scan_params["request_options"] = {"return_all_hits": True}
 
@@ -295,11 +296,9 @@ class Query(object):
         response_val = json.loads(response.text)
 
         if self.return_type == "entry":
-            idlist = walk_nested_dict(response_val,
-                                      "identifier",
-                                      maxdepth=25,
-                                      outputs=[])
-            return idlist
+            return walk_nested_dict(
+                response_val, "identifier", maxdepth=25, outputs=[]
+            )
         else:
             return response_val
 
@@ -467,9 +466,7 @@ def get_info(pdb_id, url_root='https://data.rcsb.org/rest/v1/core/entry/'):
 
     result = str(response.text)
 
-    out = json.loads(result)
-
-    return out
+    return json.loads(result)
 
 
 get_all_info = get_info  # Alias
@@ -841,7 +838,7 @@ def find_papers(search_term, max_results=10, **kwargs):
     'NMR solution structure of a CRISPR repeat binding protein']
 
     '''
-    all_papers = list()
+    all_papers = []
     id_list = Query(search_term).search()
     for pdb_id in id_list[:max_results]:
         pdb_info = get_info(pdb_id)
@@ -949,8 +946,7 @@ def to_dict(odict):
 
     '''
 
-    out = json.loads(json.dumps(odict))
-    return out
+    return json.loads(json.dumps(odict))
 
 
 def remove_at_sign(kk):
@@ -1006,11 +1002,11 @@ def remove_dupes(list_with_dupes):
     '''
     visited = set()
     visited_add = visited.add
-    out = [
-        entry for entry in list_with_dupes
+    return [
+        entry
+        for entry in list_with_dupes
         if not (entry in visited or visited_add(entry))
     ]
-    return out
 
 
 def walk_nested_dict(my_result, term, outputs=[], depth=0, maxdepth=25):
@@ -1075,12 +1071,5 @@ def walk_nested_dict(my_result, term, outputs=[], depth=0, maxdepth=25):
                              depth=depth,
                              maxdepth=maxdepth)
 
-    else:
-        pass
-        # dead leaf
-
     # this conditional may not be necessary
-    if outputs:
-        return outputs
-    else:
-        return None
+    return outputs if outputs else None

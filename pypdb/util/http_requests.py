@@ -43,8 +43,7 @@ def request_limited(url: str,
         warnings.warn("Request type not recognized")
         return None
 
-    total_attempts = 0
-    while (total_attempts <= num_attempts):
+    for total_attempts in range(num_attempts + 1):
         if rtype == "GET":
             response = requests.get(url, **kwargs)
         elif rtype == "POST":
@@ -55,12 +54,9 @@ def request_limited(url: str,
 
         if response.status_code == 429:
             curr_sleep = (1 + total_attempts) * sleep_time
-            warnings.warn("Too many requests, waiting " + str(curr_sleep) +
-                          " s")
+            warnings.warn(f"Too many requests, waiting {str(curr_sleep)} s")
             time.sleep(curr_sleep)
         elif 500 <= response.status_code < 600:
             warnings.warn("Server error encountered. Retrying")
-        total_attempts += 1
-
     warnings.warn("Too many failures on requests. Exiting...")
     return None

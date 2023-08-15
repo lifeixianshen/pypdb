@@ -74,8 +74,8 @@ def get_pdb_file(pdb_id: str,
     pdb_url = "".join(pdb_url_builder)
 
     print(
-        "Sending GET request to {} to fetch {}'s {} file as a string.".format(
-            pdb_url, pdb_id, filetype.value))
+        f"Sending GET request to {pdb_url} to fetch {pdb_id}'s {filetype.value} file as a string."
+    )
 
     response = http_requests.request_limited(pdb_url)
 
@@ -83,6 +83,4 @@ def get_pdb_file(pdb_id: str,
         warnings.warn("Retrieval failed, returning None")
         return None
 
-    if compression:
-        return gzip.decompress(response.content)
-    return response.text
+    return gzip.decompress(response.content) if compression else response.text

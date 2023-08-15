@@ -257,7 +257,7 @@ def perform_search_with_graph(
     # doesn't support the SearchOperator you're using.
     # See: https://search.rcsb.org/search-attributes.html
     if not response.ok:
-        warnings.warn("It appears request failed with:" + response.text)
+        warnings.warn(f"It appears request failed with:{response.text}")
         response.raise_for_status()
 
     # If specified, returns raw JSON response from RCSB as Dict
@@ -311,7 +311,8 @@ def _infer_search_service(search_operator: SearchOperator) -> SearchService:
         return SearchService.CHEMICAL
     else:
         raise CannotInferSearchServiceException(
-            "Cannot infer Search Service for {}".format(type(search_operator)))
+            f"Cannot infer Search Service for {type(search_operator)}"
+        )
 
 
 @dataclass
